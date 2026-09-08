@@ -7,9 +7,9 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 async def test_groq():
     words = {
-        "IICMTV": "VICTIM",
-        "CTAOUUIS": "CAUTIOUS",
-        "DSELOT": "OLDEST"
+        "ORCUC": "OCCUR",
+        "UFTTIO": "OUTFIT",
+        "AKNTE": "TAKEN"
     }
     
     for word, expected in words.items():

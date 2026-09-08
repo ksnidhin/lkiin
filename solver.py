@@ -42,8 +42,12 @@ async def solve_word(scrambled: str) -> str | None:
                 client.chat.completions.create(
                     messages=[
                         {
+                            "role": "system",
+                            "content": "You are an anagram solver. Your only job is to return the single correct English word formed by rearranging all supplied letters exactly once. Output only that word."
+                        },
+                        {
                             "role": "user",
-                            "content": f"Unscramble this word.\n\nLetters: {scrambled}\n\nReturn ONLY the single English word.\nNo explanation.\nNo punctuation."
+                            "content": f"You are solving an anagram game.\n\nScrambled letters: {scrambled}\n\nRearrange ALL of these letters to form ONE meaningful English word.\nUse every letter exactly once, including repeated letters.\nDo not add or remove any letters.\n\nReturn ONLY the final English word in plain text.\nNo explanation.\nNo punctuation.\nNo quotes.\nNo alternatives."
                         }
                     ],
                     model=model_name,
