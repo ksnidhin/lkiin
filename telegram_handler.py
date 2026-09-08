@@ -66,11 +66,15 @@ async def handler(event):
         logging.warning(f"Invalid answer generated: {answer} for {word}")
         return
         
+    # Format answer as title case before sending
+    formatted_answer = answer.capitalize()
+    
     # Send answer back to the same chat
     try:
-        await client.send_message(event.chat_id, answer)
+        await client.send_message(event.chat_id, formatted_answer)
         elapsed = time.time() - start_time
-        logging.info(f"Solved: {answer}")
+        logging.info(f"[SEND] Sending answer: {formatted_answer}")
+        logging.info(f"[SEND] Success")
         logging.info(f"Challenge received -> answer sent: {elapsed:.2f}s")
     except Exception as e:
         logging.error(f"Failed to send message: {e}")
