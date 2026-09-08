@@ -46,3 +46,30 @@ async def test_cache():
     assert await cache.contains("test_key") == True
     
 
+@pytest.mark.asyncio
+async def test_solver_fallback_logic(monkeypatch):
+    from solver import solve_word
+    from types import SimpleNamespace
+    
+    call_count = 0
+    
+    async def mock_create(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        
+        if call_count <= 2:
+            message = SimpleNamespace(content="")
+            choice = SimpleNamespace(message=message, finish_reason="length")
+            return SimpleNamespace(choices=[choice])
+        else:
+            message = SimpleNamespace(content="OUTFIT")
+            choice = SimpleNamespace(message=message, finish_reason="stop")
+            return SimpleNamespace(choices=[choice])
+            
+    import solver
+    monkeypatch.setattr(solver.client.chat.completions, "create", mock_create)
+    
+    answer = await solve_word("UFTTIO")
+    
+    assert call_count == 3
+    assert answer == "OUTFIT"
