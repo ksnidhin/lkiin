@@ -1,11 +1,15 @@
 import time
+import asyncio
 import logging
+from datetime import datetime, timezone
 from telethon import TelegramClient, events
+from telethon.errors import FloodWaitError
 from config import API_ID, API_HASH
 from challenge import is_challenge, extract_word
 from solver import solve_word
 from validator import validate_answer
 from cache import message_cache
+from anagram_solver import solve_anagram_local
 
 # Initialize client using a persistent session file
 client = TelegramClient('sessions/userbot', API_ID, API_HASH)
@@ -22,6 +26,13 @@ async def handler(event):
     if not is_challenge(event.text):
         return
         
+    # Stale challenge rejection
+    if event.date:
+        now = datetime.now(timezone.utc)
+        if (now - event.date).total_seconds() > 30:
+            logging.info(f"Ignoring stale challenge from {event.date} (older than 30 seconds).")
+            return
+            
     # Prevent duplicate handling by message ID
     msg_key = f"msg_{event.id}"
     if await message_cache.contains(msg_key):
@@ -57,25 +68,40 @@ async def handler(event):
     
     # Send to Groq for solving
     answer = await solve_word(word)
-    if not answer:
-        logging.error("Solver failed to provide an answer.")
-        return
-        
-    # Local validation
-    if not validate_answer(word, answer):
-        logging.warning(f"Invalid answer generated: {answer} for {word}")
-        return
+    valid = answer and validate_answer(word, answer)
+    
+    # Local fallback
+    if not valid:
+        logging.warning("Groq failed or returned invalid answer. Trying local dictionary fallback...")
+        fallback = solve_anagram_local(word)
+        if fallback:
+            logging.info(f"Local fallback succeeded: {fallback}")
+            answer = fallback
+            valid = True
+        else:
+            logging.error("Local fallback also failed to find an anagram.")
+            return
         
     # Format answer as title case before sending
     formatted_answer = answer.capitalize()
     
-    # Send answer back to the same chat
-    try:
-        await client.send_message(event.chat_id, formatted_answer)
-        elapsed = time.time() - start_time
-        logging.info(f"[SEND] Sending answer: {formatted_answer}")
-        logging.info(f"[SEND] Success")
-        logging.info(f"Challenge received -> answer sent: {elapsed:.2f}s")
-    except Exception as e:
-        logging.error(f"Failed to send message: {e}")
+    # Send answer back to the same chat with retry logic
+    max_send_retries = 1
+    for attempt in range(max_send_retries + 1):
+        try:
+            await client.send_message(event.chat_id, formatted_answer)
+            elapsed = time.time() - start_time
+            logging.info(f"[SEND] Sending answer: {formatted_answer}")
+            logging.info(f"[SEND] Success")
+            logging.info(f"Challenge received -> answer sent: {elapsed:.2f}s")
+            break
+        except FloodWaitError as e:
+            logging.warning(f"Flood wait error: {e.seconds}s. Cannot retry in time for a speed game.")
+            break
+        except Exception as e:
+            if attempt < max_send_retries:
+                logging.warning(f"Failed to send message: {e}. Retrying...")
+                await asyncio.sleep(0.5)
+            else:
+                logging.error(f"Failed to send message after retries: {e}")
 
