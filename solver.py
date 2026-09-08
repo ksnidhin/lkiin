@@ -43,11 +43,11 @@ async def solve_word(scrambled: str) -> str | None:
                     messages=[
                         {
                             "role": "system",
-                            "content": "You are an anagram solver. Your only job is to return the single correct English word formed by rearranging all supplied letters exactly once. Output only that word."
+                            "content": "You solve anagram games. Return the most common/intended English word using ALL letters exactly once. Output ONLY the word."
                         },
                         {
                             "role": "user",
-                            "content": f"You are solving an anagram game.\n\nScrambled letters: {scrambled}\n\nRearrange ALL of these letters to form ONE meaningful English word.\nUse every letter exactly once, including repeated letters.\nDo not add or remove any letters.\n\nReturn ONLY the final English word in plain text.\nNo explanation.\nNo punctuation.\nNo quotes.\nNo alternatives."
+                            "content": f"Unscramble: {scrambled}\n\nIMPORTANT:\n- Prefer the normal/common English word.\n- Do not return an obscure or uncommon valid anagram when a common word exists.\n- Use every letter exactly once.\n- Return ONLY the final word."
                         }
                     ],
                     model=model_name,
