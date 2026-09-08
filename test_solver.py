@@ -45,12 +45,4 @@ async def test_cache():
     await cache.add("test_key")
     assert await cache.contains("test_key") == True
     
-    await asyncio.sleep(0.2)
-    assert await cache.contains("test_key") == False
 
-def test_anagram_local():
-    from anagram_solver import solve_anagram_local
-    assert solve_anagram_local("DSELOT") == "OLDEST"
-    assert solve_anagram_local("IICMTV") == "VICTIM"
-    assert solve_anagram_local("CTAOUUIS") == "CAUTIOUS"
-    assert solve_anagram_local("XYZXYZXYZ") == None

@@ -15,7 +15,7 @@ async def solve_word(scrambled: str) -> str | None:
     logging.info(f"[GROQ] Preparing request for word: {scrambled}")
     logging.info(f"[GROQ] API key configured: {'YES' if GROQ_API_KEY else 'NO'}")
     
-    model_name = "openai/gpt-oss-20b"
+    model_name = "groq/compound-mini"
     logging.info(f"[GROQ] Model: {model_name}")
     
     max_retries = 1
