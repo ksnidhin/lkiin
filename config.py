@@ -18,3 +18,6 @@ try:
 except ValueError:
     logging.error("API_ID must be an integer.")
     sys.exit(1)
+
+# Ensure sessions directory exists before Telethon tries to create the sqlite database
+os.makedirs('sessions', exist_ok=True)
