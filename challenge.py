@@ -17,7 +17,9 @@ def extract_word(text: str) -> str | None:
     if not text:
         return None
         
-    match = re.search(r"word:\s*([a-zA-Z]+)(?:\s|$)", text, re.IGNORECASE)
+    # Handle variations like "Word: UFTTIO", "*Word:* **UFTTIO**", etc.
+    # Require a colon after "word" to avoid matching random sentences
+    match = re.search(r"word\s*\**:\**\s*\**([a-zA-Z]+)(?:[\s*:]|$)", text, re.IGNORECASE)
     if match:
         word = match.group(1).upper().strip()
         # Ensure it's purely alphabetic just in case
