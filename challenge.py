@@ -17,12 +17,18 @@ def extract_word(text: str) -> str | None:
     if not text:
         return None
         
-    # Handle variations like "Word: UFTTIO", "*Word:* **UFTTIO**", etc.
-    # Require a colon after "word" to avoid matching random sentences
-    match = re.search(r"word\s*\**:\**\s*\**([a-zA-Z]+)(?:[\s*:]|$)", text, re.IGNORECASE)
-    if match:
-        word = match.group(1).upper().strip()
-        # Ensure it's purely alphabetic just in case
-        if word.isalpha():
-            return word
+    # Handle variations like "Word: UFTTIO", "*Word:* **UFTTIO**"
+    # Also support "Letters: UFTTIO" or "Unscramble: UFTTIO"
+    patterns = [
+        r"(?:word|letters|unscramble|scrambled)\s*\**:\**\s*\**([a-zA-Z]+)(?:[\s*:]|$)",
+        r"🔤\s*\**([a-zA-Z]+)\**",  # Sometimes they just put the emoji then the word
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            word = match.group(1).upper().strip()
+            if word.isalpha():
+                return word
+                
     return None

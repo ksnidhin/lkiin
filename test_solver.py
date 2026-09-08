@@ -16,6 +16,8 @@ def test_extract_word():
     assert extract_word("word: ufttio") == "UFTTIO"
     assert extract_word("word: UFTTIO123") == None # regex expects whitespace or end of string after word
     assert extract_word("Word: UFTTIO\nSome other text") == "UFTTIO"
+    assert extract_word("Unscramble: UFTTIO") == "UFTTIO"
+    assert extract_word("🔤 UFTTIO") == "UFTTIO"
     assert extract_word("No word here") == None
 
 def test_validate_answer():

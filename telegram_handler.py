@@ -32,6 +32,17 @@ async def handler(event):
     word = extract_word(event.text)
     if not word:
         logging.warning("Challenge detected but word extraction failed.")
+        
+        # Safe debug logging for analysis
+        safe_text = repr(event.text) if event.text else "None"
+        raw_text = repr(event.raw_text) if hasattr(event, 'raw_text') else "None"
+        logging.info(f"--- EXTRACTION DEBUG ---")
+        logging.info(f"Chat ID: {event.chat_id}")
+        logging.info(f"Message ID: {event.id}")
+        logging.info(f"Media/Caption present: {bool(event.media)}")
+        logging.info(f"event.text: {safe_text}")
+        logging.info(f"event.raw_text: {raw_text}")
+        logging.info(f"------------------------")
         return
         
     # Prevent solving the same word repeatedly if it's spammed or retried
