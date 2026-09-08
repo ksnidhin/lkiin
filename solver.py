@@ -39,7 +39,8 @@ async def solve_word(scrambled: str) -> str | None:
                     ],
                     model=model_name,
                     temperature=0.0,
-                    max_tokens=20,
+                    # Increased max_tokens from 20 to 300 to allow reasoning models to finish
+                    max_tokens=300,
                 ),
                 timeout=timeout_secs
             )
@@ -47,10 +48,32 @@ async def solve_word(scrambled: str) -> str | None:
             elapsed = time.time() - start_time
             logging.info(f"[GROQ] Response received in {elapsed:.2f}s")
             
+            # Safe parsing
+            choice = completion.choices[0]
+            message = choice.message
+            content = getattr(message, 'content', '') or ''
+            
+            # Some reasoning models return thought process in reasoning_content
+            reasoning = getattr(message, 'reasoning_content', getattr(message, 'reasoning', None))
+            
+            # Temporary debug logs
+            logging.info(f"[GROQ DEBUG] finish_reason: {choice.finish_reason}")
+            logging.info(f"[GROQ DEBUG] content repr: {repr(content)}")
+            logging.info(f"[GROQ DEBUG] reasoning present: {'YES' if reasoning else 'NO'}")
+            if reasoning:
+                logging.info(f"[GROQ DEBUG] reasoning length: {len(reasoning)}")
+            if hasattr(completion, 'usage') and completion.usage:
+                logging.info(f"[GROQ DEBUG] usage: {completion.usage.completion_tokens} completion / {completion.usage.prompt_tokens} prompt")
+
             if attempt > 0:
                 logging.info("[GROQ] Retry succeeded")
                 
-            answer = completion.choices[0].message.content
+            import re
+            # If the model outputs reasoning inside <think> tags in the content block, strip it out
+            if "<think>" in content and "</think>" in content:
+                content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL)
+                
+            answer = content.strip()
             parsed = normalize_answer(answer)
             logging.info(f"[GROQ] Parsed answer: {parsed}")
             return parsed
