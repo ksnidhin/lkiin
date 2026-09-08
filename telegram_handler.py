@@ -73,13 +73,13 @@ async def solve_loop(event, word, chat_id):
         "openai/gpt-oss-20b",
         "openai/gpt-oss-20b",
         "groq/compound-mini",
-        "openai/gpt-oss-20b",
         "groq/compound-mini",
-        "openai/gpt-oss-20b",
         "groq/compound-mini",
-        "openai/gpt-oss-20b",
         "groq/compound-mini",
-        "openai/gpt-oss-20b"
+        "groq/compound-mini",
+        "groq/compound-mini",
+        "groq/compound-mini",
+        "groq/compound-mini"
     ]
     
     previous_guesses = set()
