@@ -20,8 +20,9 @@ def extract_word(text: str) -> str | None:
     # Handle variations like "Word: UFTTIO", "*Word:* **UFTTIO**"
     # Also support "Letters: UFTTIO" or "Unscramble: UFTTIO"
     patterns = [
-        r"(?:word|letters|unscramble|scrambled)\s*\**:\**\s*\**([a-zA-Z]+)(?:[\s*:]|$)",
-        r"🔤\s*\**([a-zA-Z]+)\**",  # Sometimes they just put the emoji then the word
+        # Match word/letters/unscramble followed by any non-word chars (including underscores) and a colon
+        r"(?:word|letters|unscramble|scrambled)[\W_]*:[\W_]*([a-zA-Z]+)(?:[\W_]|$)",
+        r"🔤[\W_]*([a-zA-Z]+)[\W_]*",  # Sometimes they just put the emoji then the word
     ]
     
     for pattern in patterns:

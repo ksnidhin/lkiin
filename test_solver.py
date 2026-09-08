@@ -18,6 +18,7 @@ def test_extract_word():
     assert extract_word("Word: UFTTIO\nSome other text") == "UFTTIO"
     assert extract_word("Unscramble: UFTTIO") == "UFTTIO"
     assert extract_word("🔤 UFTTIO") == "UFTTIO"
+    assert extract_word("🌟 **Scrambled Word Challenge!** 🌟\n\n🔤 __Word:__ **DSELOT**\n\n🎯 Be the first to unscramble") == "DSELOT"
     assert extract_word("No word here") == None
 
 def test_validate_answer():
