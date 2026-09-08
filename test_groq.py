@@ -1,5 +1,5 @@
 import asyncio
-from solver import solve_word
+from solver import generate_guess
 import logging
 import sys
 
@@ -16,7 +16,7 @@ async def test_groq():
     for word, expected in words.items():
         print(f"\n[CHALLENGE] Challenge detected")
         print(f"[EXTRACT] {word}")
-        answer = await solve_word(word)
+        answer = await generate_guess(word, "openai/gpt-oss-20b", set())
         if answer:
             formatted_answer = answer.capitalize()
             print(f"[SOLVER] {answer}")
