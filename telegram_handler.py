@@ -15,12 +15,39 @@ client = TelegramClient('sessions/userbot', API_ID, API_HASH)
 # format: { chat_id: {"active": bool, "word": str} }
 active_puzzles = {}
 
+import re
+from telethon.tl.types import MessageEntityUrl, MessageEntityTextUrl
+
+async def check_and_delete_bot_link(event):
+    """
+    Checks if a non-challenge message contains a link and is sent by a bot.
+    Deletes the message if the userbot has admin privileges.
+    """
+    try:
+        has_link = False
+        if event.message.entities:
+            has_link = any(isinstance(ent, (MessageEntityUrl, MessageEntityTextUrl)) for ent in event.message.entities)
+            
+        if not has_link and event.text:
+            has_link = bool(re.search(r'(https?://|t\.me/|www\.)[^\s]+', event.text, re.IGNORECASE))
+            
+        if has_link:
+            sender = await event.get_sender()
+            # If sender is a bot and not ourselves
+            if sender and getattr(sender, 'bot', False) and not event.message.out:
+                await event.delete()
+                logging.info(f"[MOD] Deleted link sent by bot (@{getattr(sender, 'username', 'unknown')}) in chat {event.chat_id}")
+    except Exception:
+        # Fail silently if we are not admin or don't have delete privileges
+        pass
+
 @client.on(events.NewMessage)
 async def handler(event):
     """
     Event handler for new Telegram messages.
     """
     if not event.text:
+        await check_and_delete_bot_link(event)
         return
         
     chat_id = event.chat_id
@@ -35,6 +62,8 @@ async def handler(event):
         
     # Check if the message is a new challenge
     if not is_challenge(event.text):
+        # If it's not a puzzle, monitor for bot links to delete
+        await check_and_delete_bot_link(event)
         return
         
     # Prevent duplicate handling by message ID
