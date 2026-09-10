@@ -91,16 +91,24 @@ async def handler(event):
         if chat_id in active_puzzles and active_puzzles[chat_id].get("active"):
             logging.info("[GAME] Puzzle solved confirmation received! Stopping loop.")
             
-            word = active_puzzles[chat_id].get("word", "Unknown")
+            puzzle_info = active_puzzles[chat_id]
+            scrambled_word = puzzle_info.get("word", "Unknown")
+            solved_word = puzzle_info.get("solved_word", "Unknown")
+            
+            start_time = puzzle_info.get("start_time", time.time())
+            elapsed_total = time.time() - start_time
+            
             chat = await event.get_chat()
             chat_title = getattr(chat, 'title', str(chat_id))
             from datetime import datetime
             now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
             log_msg = (
-                f"✅ **Word Solved!**\n"
+                f"✅ **Puzzle Solved!**\n"
                 f"🛡 Group: {chat_title}\n"
-                f"🔤 Word: `{word}`\n"
+                f"🔤 Scrambled: `{scrambled_word}`\n"
+                f"🔓 Answer: `{solved_word}`\n"
+                f"⏱ Time taken: `{elapsed_total:.2f}s`\n"
                 f"⏰ Time: `{now_str}`"
             )
             await send_log_message(log_msg)
@@ -134,8 +142,13 @@ async def handler(event):
 
     logging.info(f"Challenge detected: {word}")
     
-    # Mark puzzle as active in this chat
-    active_puzzles[chat_id] = {"active": True, "word": word}
+    # Mark puzzle as active in this chat and record start time
+    active_puzzles[chat_id] = {
+        "active": True, 
+        "word": word,
+        "solved_word": None,
+        "start_time": time.time()
+    }
     
     # Start the non-blocking solving loop
     asyncio.create_task(solve_loop(event, word, chat_id))
@@ -191,6 +204,10 @@ async def solve_loop(event, word, chat_id):
         
         try:
             await client.send_message(chat_id, formatted_answer)
+            
+            if chat_id in active_puzzles:
+                active_puzzles[chat_id]["solved_word"] = formatted_answer
+                
             elapsed = time.time() - start_time
             logging.info(f"[SEND] Sent guess #{i}: {formatted_answer} ({elapsed:.2f}s)")
         except Exception as e:
