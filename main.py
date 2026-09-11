@@ -38,12 +38,15 @@ async def main():
     
     try:
         await client.start()
-        logging.info("Userbot online — waiting for Scrambled Word Challenges...")
+        logging.info("Userbot online — monitoring for bot links...")
         
         # Start the watchdog in the background
         asyncio.create_task(liveness_watchdog())
         
         await client.run_until_disconnected()
+    except Exception as e:
+        logging.error(f"Critical error: {e}")
+        os._exit(1)
     except KeyboardInterrupt:
         logging.info("Shutting down cleanly...")
     except Exception as e:
